@@ -19,13 +19,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "spi.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "ap.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,8 +93,10 @@ int main(void)
   MX_ETH_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
+  apInit();
+  apMain();
   /* USER CODE END 2 */
 
   /* Infinite loop */
