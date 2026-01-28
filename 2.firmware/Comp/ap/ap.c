@@ -16,5 +16,10 @@ void apMain(void)
 	while(true)
 	{
 		hwMain();
+
+		if(getBtnState(0) == true)
+		{
+		  ledToggle(0);
+		}
 	}
 }

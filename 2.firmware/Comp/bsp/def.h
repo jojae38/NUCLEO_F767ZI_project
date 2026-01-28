@@ -44,5 +44,4 @@ static inline bool Is_Flag_Set16(uint16_t flags, uint16_t mask) {
 //SPI
 #define _DEF_RIFD_SPI		  0
 
-
 #endif /* BSP_DEF_H_ */

@@ -37,7 +37,13 @@
 #define HW_RFID_MAX_CH 1
 #define MAX_CARD_COUNT 20
 
+//BTN
+#define _USE_HW_BTN
+#define HW_BTN_MAX_CH 1
 
+//LED
+#define _USE_HW_LED
+#define HW_LED_MAX_CH 3
 
 #define HW_CLI_CMD_NAME_MAX    16
 #define HW_CLI_CMD_LIST_MAX    16
