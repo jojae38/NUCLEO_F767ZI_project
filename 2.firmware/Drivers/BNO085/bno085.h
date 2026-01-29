@@ -16,7 +16,13 @@ typedef enum {
     BNO_COMM_UART,
     BNO_COMM_UART_RCV,
     BNO_COMM_SPI,
-} bno_comm_type_t;
+} BNO_COMM_TYPE_E;
+
+typedef enum{
+  BNO_OK = 0,
+  BNO_ERROR = 1,
+  BNO_TIMEOUT = 2,
+}BNO_STATE_E;
 
 #define BNO_COMM_TYPE   BNO_COMM_SPI
 #define BNO_I2C_ADDR    0x4A
@@ -27,7 +33,7 @@ typedef struct{
   uint16_t        PS0_Pin;
   GPIO_TypeDef*   PS1_Port;
   uint16_t        PS1_Pin;
-  bno_comm_type_t bno_comm_type;
+  BNO_COMM_TYPE_E bno_comm_type;
 //리셋 핀
   GPIO_TypeDef*   RST_Port;
   uint16_t        RST_Pin;

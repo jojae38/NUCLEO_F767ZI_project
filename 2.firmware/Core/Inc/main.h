@@ -111,6 +111,7 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define BNO085_EXTI2_Pin GPIO_PIN_2
 #define BNO085_EXTI2_GPIO_Port GPIOD
+#define BNO085_EXTI2_EXTI_IRQn EXTI2_IRQn
 #define RMII_TX_EN_Pin GPIO_PIN_11
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define RMII_TXD0_Pin GPIO_PIN_13

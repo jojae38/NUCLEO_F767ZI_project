@@ -17,8 +17,9 @@ void apMain(void)
 	{
 		hwMain();
 
-		if(getBtnState(0) == true)
+		if(getBtnState(0) > 200)
 		{
+		  resetBtnState(0);
 		  ledToggle(0);
 		}
 	}

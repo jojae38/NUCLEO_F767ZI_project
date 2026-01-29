@@ -15,7 +15,6 @@ typedef struct{
   uint16_t      pin;
   GPIO_PinState on_state;
   GPIO_PinState off_state;
-  bool          state;
   uint32_t      duration;
 }btn_tbl_t;
 
@@ -24,6 +23,7 @@ typedef struct{
 
 void btnInit(void);
 void btnMain(void);
-bool getBtnState(uint8_t ch);
+uint32_t getBtnState(uint8_t ch);
+void resetBtnState(uint8_t ch);
 
 #endif /* BTN_H_ */
