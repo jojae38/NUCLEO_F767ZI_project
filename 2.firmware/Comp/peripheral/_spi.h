@@ -19,4 +19,8 @@ typedef struct{
 void spiInit(void);
 void spiMain(void);
 
+HAL_StatusTypeDef spiTransmit(uint8_t ch, uint8_t *pdata, uint8_t len);
+HAL_StatusTypeDef spiReceive(uint8_t ch, uint8_t *pdata, uint8_t len);
+HAL_StatusTypeDef spiTransmitReceive(uint8_t ch, uint8_t *send_pdata, uint8_t *get_pdata, uint8_t len);
+
 #endif /* PERIPHERAL__SPI_H_ */
