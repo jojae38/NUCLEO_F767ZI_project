@@ -7,6 +7,7 @@
 
 #include "cli.h"
 #include "_uart.h"
+#include "bno085.h"
 
 #ifdef _USE_HW_CLI
 
@@ -24,7 +25,7 @@ static uint8_t uartbuffer[CLI_BUFFER_SIZE];
 #define CLI_KEY_HOME              0x31
 #define CLI_KEY_END               0x34
 
-#define CLI_PROMPT_STR            "RFID# "
+#define CLI_PROMPT_STR            "BD# "
 
 #define CLI_ARGS_MAX              32
 #define CLI_PRINT_BUF_MAX         256
@@ -99,6 +100,9 @@ static float    cliArgsGetFloat(uint8_t index);
 static char    *cliArgsGetStr(uint8_t index);
 static bool     cliArgsIsStr(uint8_t index, char *p_str);
 
+void cliBnoSend(cli_args_t *args);
+void cliBnoRead(cli_args_t *args);
+
 bool cliInit(void)
 {
   cli_node.is_open = false;
@@ -119,7 +123,10 @@ bool cliInit(void)
 
   cliAdd("help", cliShowList);
 
-  cliOpen(_DEF_UART1_CLI, 115200);
+  cliAdd("send", cliBnoSend);
+  cliAdd("read", cliBnoRead);
+
+  cliOpen(_DEF_UART2_CLI, 115200);
   delay(100);
   return true;
 }
@@ -735,6 +742,69 @@ void cliShowList(cli_args_t *args)
   }
 
   cliPrintf("-----------------------------\r\n");
+}
+
+
+void cliBnoSend(cli_args_t *args)
+{
+
+  uint8_t buffer;
+  char *endptr;
+
+  if (args->argc != 2)
+  {
+      cliPrintf("Usage: rfid send <hex>\r\n");
+      return;
+  }
+
+  unsigned long val2 = strtoul(args->argv[1], &endptr, 16); // ★ base=16 고정
+
+  if (*endptr != '\0' || val2 > 0xFF)
+  {
+      cliPrintf("Invalid hex\r\n");
+      return;
+  }
+
+  buffer = (uint8_t)val2;
+
+  bno085SpiTransmit(&buffer, 1);
+}
+
+void cliBnoRead(cli_args_t *args)
+{
+  uint8_t tmp_addr;
+  uint32_t len;
+  uint8_t buffer[512];
+  memset(buffer,0,512);
+  char *endptr;
+
+  if (args->argc != 2)
+  {
+      cliPrintf("Usage: rfid send <hex>\r\n");
+      return;
+  }
+
+
+  unsigned long val = strtoul(args->argv[0], &endptr, 16); // ★ base=16 고정
+
+  if (*endptr != '\0' || val > 0xFF)
+  {
+      cliPrintf("Invalid hex\r\n");
+      return;
+  }
+  tmp_addr = (uint8_t)val;
+  len = atoi(args->argv[1]);
+
+  bno085SpiTransmitReceive(&tmp_addr, buffer, len);
+
+  for(int i = 0; i< len; i++)
+  {
+    cliPrintf("0x%02X ",buffer[i]);
+    if(i%10 == 0)
+    {
+      cliPrintf("\n ");
+    }
+  }
 }
 
 //void cliMemoryDump(cli_args_t *args)

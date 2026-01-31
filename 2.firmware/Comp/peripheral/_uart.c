@@ -8,7 +8,9 @@
 #include "_uart.h"
 #include "qbuffer.h"
 
+extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
+
 
 uint8_t rx_data[HW_UART_MAX_CH];
 
@@ -22,6 +24,7 @@ typedef struct{
 
 // UART 테이블 초기화
 static uart_tbl_t uart_tbl[HW_UART_MAX_CH] = {
+    {.uart_handler = &huart2, .baudrate = 115200, .qbuffer = {0},.is_open = false},
     {.uart_handler = &huart3, .baudrate = 115200, .qbuffer = {0},.is_open = false},
 //    {.uart_handler = &huart3,115200,{0},false},
 };

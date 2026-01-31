@@ -5,6 +5,16 @@
  *      Author: Pro
  */
 
+/*
+ *인터럽트 핀은 Falling Edge Detect
+ *
+ *
+ *UART - RVC 쓰면 100hz단위로 데이터가 오는듯
+ *그 외 I2C, SPI 쓰면 SHTP라는 프로토콜을 사용함
+ *
+ *
+ * */
+
 #ifndef BNO085_BNO085_H_
 #define BNO085_BNO085_H_
 
@@ -37,9 +47,10 @@ typedef struct{
 //리셋 핀
   GPIO_TypeDef*   RST_Port;
   uint16_t        RST_Pin;
-//인터럽트 핀
-  GPIO_TypeDef*   INT_Port;
-  uint16_t        INT_Pin;
+////인터럽트 핀
+//  GPIO_TypeDef*   INT_Port;
+//  uint16_t        INT_Pin;
+  bool            init_state;
 }bno085_setting_tbl_t;
 
 typedef struct{
@@ -49,5 +60,9 @@ typedef struct{
 
 void bno085Init(void);
 void bno085Main(void);
+
+BNO_STATE_E bno085SpiTransmit(uint8_t* pdata, uint32_t len);
+BNO_STATE_E bno085SpiReceive(uint8_t* pdata, uint32_t len);
+BNO_STATE_E bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
 
 #endif /* BNO085_BNO085_H_ */

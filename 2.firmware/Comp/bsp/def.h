@@ -39,7 +39,7 @@ static inline bool Is_Flag_Set16(uint16_t flags, uint16_t mask) {
 #define MINUTE(min)   ((min) * SECOND(60))
 
 //UART
-#define _DEF_UART1_CLI        0
+#define _DEF_UART2_CLI        0
 
 //SPI
 #define _DEF_BNO085_SPI	      0

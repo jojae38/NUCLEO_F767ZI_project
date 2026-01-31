@@ -60,7 +60,6 @@ void hwMain(void)
     }
 
   }
-
 	cliMain();
 	bno085Main();
 }
