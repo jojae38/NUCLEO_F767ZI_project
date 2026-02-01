@@ -34,8 +34,16 @@ typedef enum{
   BNO_TIMEOUT = 2,
 }BNO_STATE_E;
 
-#define BNO_COMM_TYPE   BNO_COMM_SPI
-#define BNO_I2C_ADDR    0x4A
+typedef enum{
+  SEQ_HEADER = 0,
+  SEQ_WAIT_INT,
+  SEQ_DATA,
+  SEQ_ERROR = 99,
+}BNO_SEQ_E;
+
+#define BNO_COMM_TYPE     BNO_COMM_SPI
+#define BNO_I2C_ADDR      0x4A
+#define BNO_BUFFER_LIMIT  0x7FFF
 
 typedef struct{
 //PS0 PS1 핀 세팅
@@ -48,13 +56,15 @@ typedef struct{
   GPIO_TypeDef*   RST_Port;
   uint16_t        RST_Pin;
 ////인터럽트 핀
-//  GPIO_TypeDef*   INT_Port;
-//  uint16_t        INT_Pin;
+  GPIO_TypeDef*   INT_Port;
+  uint16_t        INT_Pin;
   bool            init_state;
 }bno085_setting_tbl_t;
 
 typedef struct{
+  BNO_SEQ_E bno_seq;
   bool INT_pinstate;
+  uint16_t bno_data_size;
 
 }bno085_tbl_t;
 

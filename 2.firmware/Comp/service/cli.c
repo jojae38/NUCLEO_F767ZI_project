@@ -126,7 +126,7 @@ bool cliInit(void)
   cliAdd("send", cliBnoSend);
   cliAdd("read", cliBnoRead);
 
-  cliOpen(_DEF_UART2_CLI, 115200);
+  cliOpen(_DEF_UART2_CLI, 230400);
   delay(100);
   return true;
 }
@@ -799,11 +799,11 @@ void cliBnoRead(cli_args_t *args)
 
   for(int i = 0; i< len; i++)
   {
-    cliPrintf("0x%02X ",buffer[i]);
     if(i%10 == 0)
     {
       cliPrintf("\n ");
     }
+    cliPrintf("0x%02X ",buffer[i]);
   }
 }
 

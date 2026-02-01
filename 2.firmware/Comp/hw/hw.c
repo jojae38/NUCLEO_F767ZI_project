@@ -33,11 +33,12 @@ void hwMain(void)
     last_100ms = timer_100ms;
 
     btnMain();
+//    bno085Main();
     // 0.2초
     if(timer_100ms - last_200ms >= 2)
     {
       last_200ms = timer_100ms;
-
+//      bno085Main();
     }
 
     //0.5초
@@ -51,6 +52,8 @@ void hwMain(void)
     if(timer_100ms - last_1s >= 10)
     {
       last_1s = timer_100ms;
+
+//      bno085Main();
     }
 
     //5초
@@ -61,5 +64,5 @@ void hwMain(void)
 
   }
 	cliMain();
-	bno085Main();
+//	bno085Main();
 }
