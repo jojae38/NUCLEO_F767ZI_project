@@ -40,6 +40,7 @@ static inline bool Is_Flag_Set16(uint16_t flags, uint16_t mask) {
 
 //UART
 #define _DEF_UART2_CLI        0
+#define _DEF_UART4_BNO        1
 
 //SPI
 #define _DEF_BNO085_SPI	      0

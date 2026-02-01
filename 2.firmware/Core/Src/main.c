@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "eth.h"
+#include "i2c.h"
 #include "spi.h"
 #include "usart.h"
 #include "usb_otg.h"
@@ -100,6 +101,8 @@ int main(void)
   MX_USB_OTG_FS_PCD_Init();
   MX_SPI3_Init();
   MX_USART2_UART_Init();
+  MX_I2C2_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   apInit();
   apMain();

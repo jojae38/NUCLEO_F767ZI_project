@@ -41,6 +41,8 @@ typedef enum{
   SEQ_ERROR = 99,
 }BNO_SEQ_E;
 
+
+
 #define BNO_COMM_TYPE     BNO_COMM_SPI
 #define BNO_I2C_ADDR      0x4A
 #define BNO_BUFFER_LIMIT  0x7FFF
@@ -58,6 +60,12 @@ typedef struct{
 ////인터럽트 핀
   GPIO_TypeDef*   INT_Port;
   uint16_t        INT_Pin;
+//SPI
+  SPI_HandleTypeDef* spi_handler;
+//I2C
+  I2C_HandleTypeDef* i2c_handler;
+//UART
+  UART_HandleTypeDef* uart_handler;
   bool            init_state;
 }bno085_setting_tbl_t;
 
@@ -71,8 +79,8 @@ typedef struct{
 void bno085Init(void);
 void bno085Main(void);
 
-BNO_STATE_E bno085SpiTransmit(uint8_t* pdata, uint32_t len);
-BNO_STATE_E bno085SpiReceive(uint8_t* pdata, uint32_t len);
-BNO_STATE_E bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
+//BNO_STATE_E bno085SpiTransmit(uint8_t* pdata, uint32_t len);
+//BNO_STATE_E bno085SpiReceive(uint8_t* pdata, uint32_t len);
+//BNO_STATE_E bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
 
 #endif /* BNO085_BNO085_H_ */

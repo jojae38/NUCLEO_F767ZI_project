@@ -767,7 +767,7 @@ void cliBnoSend(cli_args_t *args)
 
   buffer = (uint8_t)val2;
 
-  bno085SpiTransmit(&buffer, 1);
+//  bno085SpiTransmit(&buffer, 1);
 }
 
 void cliBnoRead(cli_args_t *args)
@@ -795,7 +795,7 @@ void cliBnoRead(cli_args_t *args)
   tmp_addr = (uint8_t)val;
   len = atoi(args->argv[1]);
 
-  bno085SpiTransmitReceive(&tmp_addr, buffer, len);
+  bno085SpiTransmitReceive(&tmp_addr, 1, buffer, len);
 
   for(int i = 0; i< len; i++)
   {
