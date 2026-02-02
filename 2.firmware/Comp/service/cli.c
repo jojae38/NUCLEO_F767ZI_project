@@ -774,8 +774,8 @@ void cliBnoRead(cli_args_t *args)
 {
   uint8_t tmp_addr;
   uint32_t len;
-  uint8_t buffer[512];
-  memset(buffer,0,512);
+  uint8_t buffer[4096];
+  memset(buffer,0,4096);
   char *endptr;
 
   if (args->argc != 2)

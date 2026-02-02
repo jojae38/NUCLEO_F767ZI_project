@@ -43,6 +43,7 @@ bno085_tbl_t bno085_tbl = {
 };
 
 uint8_t tmp_seq;
+uint32_t int_count;
 
 #define BNOHEADER_SIZE 4
 #define BNOBUFFER_SIZE 32768
@@ -54,10 +55,11 @@ static void bno085ChangeCommType(uint8_t type);
 BNO_STATE_E bno085SpiTransmitReceiveOrg(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
 
 void bno085Reset(void);
-void bno085WakeUp(void);
+bool bno085WakeUp(void);
 //GPIO_PinState bno085IntUpdate(void);
 void bno085DataPrint(uint8_t* buffer, uint16_t len);
 bool bno085GetInt(void);
+bool bno085WaitInt(uint32_t term);
 
 bool bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t s_len, uint8_t* r_pdata, uint32_t r_len);
 
@@ -66,6 +68,7 @@ bool bno085I2CReceive(uint8_t* pdata, uint16_t len);
 
 void bno085Init(void)
 {
+  int_count = 0;
   tmp_seq = 0;
   memset(bnoHeader,0,BNOHEADER_SIZE);
   memset(bnoBuffer,0,BNOBUFFER_SIZE);
@@ -78,8 +81,14 @@ void bno085Init(void)
   HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
   HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_SET);
   //리셋
+  delay(10);
   bno085Reset();
-//  bno085WakeUp();
+//  if(bno085WakeUp())
+//    cliPrintf("BnoWake");
+//
+//  delay(10);
+//  if(bno085WakeUp())
+//    cliPrintf("BnoWake");
 }
 
 static void bno085ChangeCommType(uint8_t type)
@@ -108,12 +117,13 @@ static void bno085ChangeCommType(uint8_t type)
 
 void bno085SpiRead(uint8_t*buffer, uint16_t len)
 {
-  if (!bno085GetInt()) {
+  if(!bno085WaitInt(500))
     return;
-  }
+
   uint8_t dummy = 0x00;
   uint8_t header_buffer[4];
   memset(header_buffer,0,4);
+
   if (bno085SpiTransmitReceive(&dummy, 1, header_buffer, 4) == false) {
     return;
   }
@@ -127,18 +137,15 @@ void bno085SpiRead(uint8_t*buffer, uint16_t len)
   packet_size = (uint16_t)header_buffer[0] | (uint16_t)header_buffer[1] << 8;
   packet_size &= ~0x8000;
 
-
-
   if (packet_size > len) {
     return;
   }
 
-  if (!bno085GetInt()) {
+  if(!bno085WaitInt(500))
     return;
-  }
 
   if (bno085SpiTransmitReceive(&dummy, 1, buffer, packet_size) == false) {
-    cliPrintf("ReadFail\r\n");
+//    cliPrintf("ReadFail\r\n");
     return;
   }
   cliPrintf("PacketSize : %i\r\n",packet_size);
@@ -221,14 +228,6 @@ void bno085SpiRead(uint8_t*buffer, uint16_t len)
 
 void bno085Main(void)
 {
-  if(bno085GetInt() == true)
-  {
-    ledOn(0);
-  }
-  else
-  {
-    ledOff(0);
-  }
   bno085SpiRead(bnoBuffer,BNOBUFFER_SIZE);
 //  bno085Seq();
 }
@@ -451,90 +450,68 @@ error:
 
 void bno085Reset(void)
 {
-  cliPrintf("BnoReset\n");
   HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_SET);
   delay(100);
   HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_RESET);
-  delay(20);
+  delay(10);
   HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_SET);
-  delay(100);
-//  bno085_setting_tbl.init_state = true;
-  if(bno085GetInt())
+  if(bno085WaitInt(500))
   {
     bno085_setting_tbl.init_state = true;
+    cliPrintf("BnoResetOk\r\n");
   }
-  delay(100);
-//  if(bno085GetInt() == true)
+  else
+  {
+    bno085_setting_tbl.init_state = false;
+    cliPrintf("BnoResetFail\r\n");
+  }
+//  delay(10);
+
+//  delay(150);
+////  bno085_setting_tbl.init_state = true;
+//  if(bno085GetInt())
 //  {
 //    bno085_setting_tbl.init_state = true;
-//  }
-//  if(bno085_tbl.INT_pinstate == true)
-//  {
-//    cliPrintf("BnoResetOk!\n");
-//    bno085_setting_tbl.init_state = true;
-//    bno085_tbl.INT_pinstate = false;
+//    cliPrintf("BnoResetOk\r\n");
 //  }
 //  else
 //  {
-//    cliPrintf("BnoResetFail!\n");
 //    bno085_setting_tbl.init_state = false;
+//    cliPrintf("BnoResetFail\r\n");
 //  }
-
-//  if(bno085WaitInt(500) == false)
-//  {
-//    cliPrintf("BnoResetFail!\n");
-//    return;
-//  }
-//  cliPrintf("BnoResetOk!\n");
-
-//  delay(50);
 }
 
-void bno085WakeUp(void)
+bool bno085WakeUp(void)
 {
-  uint32_t timer = millis() + 500;
-  bno085_tbl.INT_pinstate = false;
   HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_RESET);
-
-  while((int32_t)(timer - millis()) > 0)
+  if(!bno085WaitInt(500))
   {
-    if(bno085_tbl.INT_pinstate == true)
-    {
-      cliPrintf("BnoWakeUP\n");
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
-      return;
-    }
-    delay(20);
+    return false;
   }
   HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
-  cliPrintf("BnoWakeUP Fail\n");
-  //INT 핀 확인
+  delay(1);
+  return true;
 }
 
 uint32_t int_timer = 1000;
 bool bno085GetInt(void)
 {
-  bool ret = false;
-  GPIO_PinState pin_state = HAL_GPIO_ReadPin(bno085_setting_tbl.INT_Port, bno085_setting_tbl.INT_Pin);
-
-  if(pin_state == GPIO_PIN_RESET)
-  {
-    bno085_tbl.INT_pinstate = true;
-//    int_timer = millis() + 1000;
-    ret = true;
-  }
-  else
-  {
-    bno085_tbl.INT_pinstate = false;
-  }
-
-//  if(int_timer < millis())
-//  {
-////    bno085Reset();
-//  }
-
-//  bno085Reset();
+  bool ret = bno085_tbl.INT_pinstate;
+  bno085_tbl.INT_pinstate = false;
   return ret;
+}
+
+bool bno085WaitInt(uint32_t term)
+{
+  uint32_t timer = millis() + term;
+  while(timer > millis())
+  {
+    if(bno085GetInt())
+      return true;
+
+    delay(1);
+  }
+  return false;
 }
 
 void bno085DataPrint(uint8_t* buffer, uint16_t len)
@@ -547,13 +524,14 @@ void bno085DataPrint(uint8_t* buffer, uint16_t len)
   }
 }
 
-//void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-//{
-//  if(GPIO_Pin == GPIO_PIN_2)
-//  {
-//    bno085_tbl.INT_pinstate = true;
-//  }
-//}
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(GPIO_Pin == GPIO_PIN_2)
+  {
+    int_count ++;
+    bno085_tbl.INT_pinstate = true;
+  }
+}
 
 //GPIO_PinState bno085IntUpdate(void)
 //{
