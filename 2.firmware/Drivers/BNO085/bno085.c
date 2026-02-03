@@ -15,21 +15,16 @@
 extern I2C_HandleTypeDef hi2c2;
 extern SPI_HandleTypeDef hspi3;
 
-static void NSS_L(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET); }
-static void NSS_H(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_SET); }
+//static void NSS_L(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET); }
+//static void NSS_H(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_SET); }
+//ACTIVE LOW
+
+static void PS0_wake(bool state){HAL_GPIO_WritePin(BNO085_PS0_GPIO_Port, BNO085_PS0_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
+static void PS1(bool state){HAL_GPIO_WritePin(BNO085_PS1_GPIO_Port, BNO085_PS1_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
+static void NSS(bool state){HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
+static void RSTN(bool state){HAL_GPIO_WritePin(BNO085_RST_GPIO_Port, BNO085_RST_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
 
 bno085_setting_tbl_t bno085_setting_tbl = {
-    .PS0_Port = BNO085_PS0_GPIO_Port,
-    .PS0_Pin = BNO085_PS0_Pin,
-    .PS1_Port = BNO085_PS1_GPIO_Port,
-    .PS1_Pin = BNO085_PS1_Pin,
-
-    .RST_Port = BNO085_RST_GPIO_Port,
-    .RST_Pin = BNO085_RST_Pin,
-
-    .INT_Port = BNO085_INT_GPIO_Port,
-    .INT_Pin = BNO085_INT_Pin,
-
     .i2c_handler = &hi2c2,
     .spi_handler = &hspi3,
     .bno_comm_type = BNO_COMM_TYPE,
@@ -37,7 +32,7 @@ bno085_setting_tbl_t bno085_setting_tbl = {
 };
 
 bno085_tbl_t bno085_tbl = {
-    .bno_seq = SEQ_HEADER,
+    .bno_seq = SPI_INIT,
     .INT_pinstate = false,
     .bno_data_size = 0,
 };
@@ -74,12 +69,7 @@ void bno085Init(void)
   memset(bnoBuffer,0,BNOBUFFER_SIZE);
   uartOpen(_DEF_UART4_BNO,115200,bnoBuffer,BNOBUFFER_SIZE);
   //통신 설정 초기화
-//  if(bno085_setting_tbl.PS0_Port != NULL && bno085_setting_tbl.PS1_Port != NULL)
-//  {
-//    bno085ChangeCommType(bno085_setting_tbl.bno_comm_type);
-//  }
-  HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_SET);
+  bno085ChangeCommType(bno085_setting_tbl.bno_comm_type);
   //리셋
   delay(10);
   bno085Reset();
@@ -95,20 +85,20 @@ static void bno085ChangeCommType(uint8_t type)
 {
   switch (type) {
     case BNO_COMM_I2C:
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_RESET);
+      PS0_wake(false);
+      PS1(false);
       break;
     case BNO_COMM_UART:
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_RESET);
+      PS0_wake(true);
+      PS1(false);
       break;
     case BNO_COMM_UART_RCV:
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_SET);
+      PS0_wake(false);
+      PS1(true);
       break;
     case BNO_COMM_SPI:
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(bno085_setting_tbl.PS1_Port, bno085_setting_tbl.PS1_Pin, GPIO_PIN_SET);
+      PS0_wake(true);
+      PS1(true);
       break;
     default:
       break;
@@ -433,28 +423,28 @@ bool bno085I2CReceive(uint8_t* pdata, uint16_t len)
 
 bool bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t s_len, uint8_t* r_pdata, uint32_t r_len)
 {
-  NSS_L();
+  NSS(false);
   if(HAL_SPI_Transmit(bno085_setting_tbl.spi_handler, s_pdata, s_len, 500) != HAL_OK)
     goto error;
   if(HAL_SPI_Receive(bno085_setting_tbl.spi_handler, r_pdata, r_len, 500) != HAL_OK)
     goto error;
 
-  NSS_H();
+  NSS(true);
   return true;
 
 error:
-  NSS_H();
+  NSS(true);
   return false;
 
 }
 
 void bno085Reset(void)
 {
-  HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_SET);
+  RSTN(true);
   delay(100);
-  HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_RESET);
+  RSTN(false);
   delay(10);
-  HAL_GPIO_WritePin(bno085_setting_tbl.RST_Port, bno085_setting_tbl.RST_Pin, GPIO_PIN_SET);
+  RSTN(true);
   if(bno085WaitInt(500))
   {
     bno085_setting_tbl.init_state = true;
@@ -483,12 +473,12 @@ void bno085Reset(void)
 
 bool bno085WakeUp(void)
 {
-  HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_RESET);
+  PS0_wake(false);
   if(!bno085WaitInt(500))
   {
     return false;
   }
-  HAL_GPIO_WritePin(bno085_setting_tbl.PS0_Port, bno085_setting_tbl.PS0_Pin, GPIO_PIN_SET);
+  PS0_wake(true);
   delay(1);
   return true;
 }
@@ -533,6 +523,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   }
 }
 
+
+void bno085Complete(void)
+{
+
+}
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  if(hspi == bno085_setting_tbl.spi_handler)
+  {
+    bno085Complete();
+  }
+}
 //GPIO_PinState bno085IntUpdate(void)
 //{
 //  GPIO_PinState ret = HAL_GPIO_ReadPin(bno085_setting_tbl.INT_Port, bno085_setting_tbl.INT_Pin);

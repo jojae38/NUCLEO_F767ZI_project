@@ -35,9 +35,12 @@ typedef enum{
 }BNO_STATE_E;
 
 typedef enum{
-  SEQ_HEADER = 0,
-  SEQ_WAIT_INT,
-  SEQ_DATA,
+  SPI_INIT = 0,
+  SPI_DUMMY,
+  SPI_IDLE,
+  SPI_RD_HDR,
+  SPI_RD_BODY,
+  SPI_WRITE,
   SEQ_ERROR = 99,
 }BNO_SEQ_E;
 
@@ -48,25 +51,14 @@ typedef enum{
 #define BNO_BUFFER_LIMIT  0x7FFF
 
 typedef struct{
-//PS0 PS1 핀 세팅
-  GPIO_TypeDef*   PS0_Port;
-  uint16_t        PS0_Pin;
-  GPIO_TypeDef*   PS1_Port;
-  uint16_t        PS1_Pin;
-  BNO_COMM_TYPE_E bno_comm_type;
-//리셋 핀
-  GPIO_TypeDef*   RST_Port;
-  uint16_t        RST_Pin;
-////인터럽트 핀
-  GPIO_TypeDef*   INT_Port;
-  uint16_t        INT_Pin;
 //SPI
   SPI_HandleTypeDef* spi_handler;
 //I2C
   I2C_HandleTypeDef* i2c_handler;
 //UART
   UART_HandleTypeDef* uart_handler;
-  bool            init_state;
+  bool               init_state;
+  BNO_COMM_TYPE_E     bno_comm_type;
 }bno085_setting_tbl_t;
 
 typedef struct{
