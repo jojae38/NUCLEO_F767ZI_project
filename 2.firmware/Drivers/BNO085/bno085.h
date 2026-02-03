@@ -65,7 +65,8 @@ typedef struct{
   BNO_SEQ_E bno_seq;
   bool INT_pinstate;
   uint16_t bno_data_size;
-
+  uint32_t rx_time_stamp;
+  uint32_t rx_time_interval;
 }bno085_tbl_t;
 
 void bno085Init(void);

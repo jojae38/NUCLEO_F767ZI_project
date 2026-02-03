@@ -15,8 +15,6 @@
 extern I2C_HandleTypeDef hi2c2;
 extern SPI_HandleTypeDef hspi3;
 
-//static void NSS_L(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_RESET); }
-//static void NSS_H(){ HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, GPIO_PIN_SET); }
 //ACTIVE LOW
 
 static void PS0_wake(bool state){HAL_GPIO_WritePin(BNO085_PS0_GPIO_Port, BNO085_PS0_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
@@ -35,7 +33,12 @@ bno085_tbl_t bno085_tbl = {
     .bno_seq = SPI_INIT,
     .INT_pinstate = false,
     .bno_data_size = 0,
+    .rx_time_stamp = 0,
+    .rx_time_interval = 0,
 };
+
+bool  inReset;
+bool  rxReady;
 
 uint8_t tmp_seq;
 uint32_t int_count;
@@ -63,11 +66,13 @@ bool bno085I2CReceive(uint8_t* pdata, uint16_t len);
 
 void bno085Init(void)
 {
+  inReset = false;
+  rxReady = false;
   int_count = 0;
   tmp_seq = 0;
   memset(bnoHeader,0,BNOHEADER_SIZE);
   memset(bnoBuffer,0,BNOBUFFER_SIZE);
-  uartOpen(_DEF_UART4_BNO,115200,bnoBuffer,BNOBUFFER_SIZE);
+//  uartOpen(_DEF_UART4_BNO,115200,bnoBuffer,BNOBUFFER_SIZE);
   //통신 설정 초기화
   bno085ChangeCommType(bno085_setting_tbl.bno_comm_type);
   //리셋
@@ -527,11 +532,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if(GPIO_Pin == GPIO_PIN_2)
   {
-    int_count ++;
+    bno085_tbl.rx_time_interval = bno085_tbl.rx_time_stamp -millis();
+    bno085_tbl.rx_time_stamp = millis();
+
+    inReset = false;
+    rxReady = true;
+
     bno085_tbl.INT_pinstate = true;
   }
 }
 
+void bno085Run(void)
+{
+
+}
 
 void bno085Complete(void)
 {
