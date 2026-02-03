@@ -81,6 +81,15 @@ void bno085Init(void)
 //    cliPrintf("BnoWake");
 }
 
+//CSN은 하지 않는 상태에서 SCK만 동기화
+void bno085DummyOp(void)
+{
+  uint8_t dummyTx[1];
+  uint8_t dummyRx[1];
+  memset(dummyTx,0xAA,sizeof(dummyTx));
+  HAL_SPI_TransmitReceive(bno085_setting_tbl.spi_handler, dummyTx, dummyRx, sizeof(dummyTx), 10);
+}
+
 static void bno085ChangeCommType(uint8_t type)
 {
   switch (type) {
