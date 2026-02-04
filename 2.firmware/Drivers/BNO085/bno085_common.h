@@ -9,6 +9,7 @@
 #define BNO085_BNO085_COMMON_H_
 
 #include "hw_def.h"
+#include "cli.h"
 
 //COMM TYPE
 #define BNO_SPI

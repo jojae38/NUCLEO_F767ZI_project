@@ -21,5 +21,6 @@ typedef enum{
 }BNO_SPI_SEQ;
 
 void bnoSpiReset(void);
+void bnoSpiSeq(void);
 
 #endif /* BNO085_BNO085_SPI_H_ */

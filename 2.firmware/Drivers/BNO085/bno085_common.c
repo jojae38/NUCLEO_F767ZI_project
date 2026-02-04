@@ -6,6 +6,7 @@
  */
 
 #include "bno085_common.h"
+#include "cli.h"
 
 void PS0_wake(bool state){HAL_GPIO_WritePin(BNO_PS0_PORT, BNO_PS0_PIN, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
 void PS1(bool state){HAL_GPIO_WritePin(BNO_PS1_PORT, BNO_PS1_PIN, state? GPIO_PIN_SET : GPIO_PIN_RESET);}

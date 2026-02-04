@@ -24,18 +24,6 @@
 #include "bno085_uart.h"
 #include "bno085_uartrvc.h"
 
-typedef struct{
-  bool inReset;
-
-}bno085_state_t;
-
-typedef struct{
-  bool INT_pinstate;
-  uint16_t bno_data_size;
-  uint32_t rx_time_stamp;
-  uint32_t rx_time_interval;
-}bno085_tbl_t;
-
 void bno085Init(void);
 void bno085Main(void);
 
