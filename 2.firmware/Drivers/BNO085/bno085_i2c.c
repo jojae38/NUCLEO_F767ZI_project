@@ -4,9 +4,7 @@
  *  Created on: 2026. 2. 4.
  *      Author: jojae
  */
-#define BNO_ADDR7  0x4A
-#define BNO_ADDR8  (BNO_ADDR7 << 1)
-#define I2C_BUFFER_MAX 1024
+
 
 #ifdef BNO_I2C
 

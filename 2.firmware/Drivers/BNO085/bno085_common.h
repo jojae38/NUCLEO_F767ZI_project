@@ -32,7 +32,9 @@ extern SPI_HandleTypeDef hspi3;
 #endif
 
 #ifdef BNO_I2C
-#define BNO_I2C_ADDR            0x4A
+#define BNO_ADDR7  0x4A
+#define BNO_ADDR8  (BNO_ADDR7 << 1)
+#define I2C_BUFFER_MAX 1024
 #endif
 
 #ifdef BNO_UART
@@ -46,6 +48,8 @@ extern SPI_HandleTypeDef hspi3;
 //COMMON DEFINE
 #define BNO_BUFFER_LIMIT        0x7FFF
 #define BNO_DEFAULT_WAIT_TIME   500
+#define BNO_TX_BUFFER_LIMIT     512
+#define BNO_RX_BUFFER_LIMIT     512
 
 typedef struct{
   uint32_t raw_acc;

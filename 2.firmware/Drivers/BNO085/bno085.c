@@ -12,14 +12,8 @@
 #include "_uart.h"
 #include "led.h"
 
-extern I2C_HandleTypeDef hi2c2;
-extern SPI_HandleTypeDef hspi3;
-
-//ACTIVE LOW
-
-
-
-
+rxBuffer[BNO_RX_BUFFER_LIMIT];
+txBuffer[BNO_TX_BUFFER_LIMIT];
 
 bno085_tbl_t bno085_tbl = {
     .INT_pinstate = false,
@@ -34,13 +28,6 @@ bool  rxReady;
 uint8_t tmp_seq;
 uint32_t int_count;
 
-#define BNOHEADER_SIZE 4
-#define BNOBUFFER_SIZE 32768
-
-uint8_t bnoHeader[BNOHEADER_SIZE];
-uint8_t bnoBuffer[BNOBUFFER_SIZE];
-
-static void bno085ChangeCommType(uint8_t type);
 BNO_STATE_E bno085SpiTransmitReceiveOrg(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
 
 void bno085Reset(void);
@@ -61,8 +48,6 @@ void bno085Init(void)
   rxReady = false;
   int_count = 0;
   tmp_seq = 0;
-  memset(bnoHeader,0,BNOHEADER_SIZE);
-  memset(bnoBuffer,0,BNOBUFFER_SIZE);
 //  uartOpen(_DEF_UART4_BNO,115200,bnoBuffer,BNOBUFFER_SIZE);
   //통신 설정 초기화
   //리셋
@@ -148,7 +133,7 @@ void bno085SpiRead(uint8_t*buffer, uint16_t len)
 
 void bno085Main(void)
 {
-  bno085SpiRead(bnoBuffer,BNOBUFFER_SIZE);
+//  bno085SpiRead(bnoBuffer,BNOBUFFER_SIZE);
 //  bno085Seq();
 }
 

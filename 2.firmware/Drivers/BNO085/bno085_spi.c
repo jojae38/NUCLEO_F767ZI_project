@@ -9,6 +9,14 @@
 
 #ifdef BNO_SPI
 
+//인터럽트
+bool intOk = false;
+static void enableInt(void) {intOk = true;}
+static void disableInt(void){intOk = false;}
+
+bool inReset = false;
+BNO_SPI_SEQ bno_seq = SPI_INIT;
+
 static void NSS(bool state){HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
 static void bno085DummyOp(void);
 
@@ -41,11 +49,75 @@ error:
 
 void bno085Reset(void)
 {
-  RSTN(true);
-  delay(100);
+  disableInt();
   RSTN(false);
+  NSS(false);
+  delay(10);
+  //SPI 모드
+  PS0_wake(true);
+  PS1(true);
+  RSTN(true);
+
+
+  inReset = true;
+
+  //SPI SCK 동기화
+  bno_seq = SPI_DUMMY;
+  bno085DummyOp();
+  bno_seq = SPI_IDLE;
+
   delay(10);
   RSTN(true);
+
+  enableInt();
+  delay(2000);
+}
+
+
+
+bool intTrigger = false;
+bool spiTrigger = false;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if(intOk && GPIO_Pin == BNO085_INT_Pin)
+  {
+    intTrigger = true;
+  }
+}
+
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+  if(intOk && hspi == &BNO_SPI_HANDLER)
+  {
+    spiTrigger  = true;
+  }
+}
+
+bool extiIntCheck(bool reset)
+{
+  bool ret = intTrigger;
+  if(reset)
+    intTrigger = false;
+  return ret;
+}
+
+bool waitExtiIntCheck(bool reset)
+{
+  bool ret = intTrigger;
+
+  uint32_t timer = millis();
+  while((millis() - timer) < BNO_DEFAULT_WAIT_TIME)
+  {
+    if(intTrigger == true)
+    {
+      if(reset)
+        intTrigger = false;
+      return true;
+    }
+    delay(1);
+  }
+  return ret;
 }
 
 #endif

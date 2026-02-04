@@ -10,6 +10,9 @@
 
 #include "bno085_common.h"
 
-bool waitExtiInterrupt(bool reset);
+#ifdef BNO_SPI
+bool extiIntCheck(bool reset);
+bool waitnterruptCheck(bool reset);
+#endif
 
 #endif /* BNO085_BNO085_INT_H_ */
