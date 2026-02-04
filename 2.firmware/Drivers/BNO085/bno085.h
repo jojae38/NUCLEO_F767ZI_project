@@ -18,51 +18,18 @@
 #ifndef BNO085_BNO085_H_
 #define BNO085_BNO085_H_
 
-#include "hw_def.h"
-
-// I2C - 0, UART - 1, UART-RCV - 2, SPI - 3
-typedef enum {
-    BNO_COMM_I2C = 0,
-    BNO_COMM_UART,
-    BNO_COMM_UART_RCV,
-    BNO_COMM_SPI,
-} BNO_COMM_TYPE_E;
-
-typedef enum{
-  BNO_OK = 0,
-  BNO_ERROR = 1,
-  BNO_TIMEOUT = 2,
-}BNO_STATE_E;
-
-typedef enum{
-  SPI_INIT = 0,
-  SPI_DUMMY,
-  SPI_IDLE,
-  SPI_RD_HDR,
-  SPI_RD_BODY,
-  SPI_WRITE,
-  SEQ_ERROR = 99,
-}BNO_SEQ_E;
-
-
-
-#define BNO_COMM_TYPE     BNO_COMM_SPI
-#define BNO_I2C_ADDR      0x4A
-#define BNO_BUFFER_LIMIT  0x7FFF
+#include "bno085_common.h"
+#include "bno085_spi.h"
+#include "bno085_i2c.h"
+#include "bno085_uart.h"
+#include "bno085_uartrvc.h"
 
 typedef struct{
-//SPI
-  SPI_HandleTypeDef* spi_handler;
-//I2C
-  I2C_HandleTypeDef* i2c_handler;
-//UART
-  UART_HandleTypeDef* uart_handler;
-  bool               init_state;
-  BNO_COMM_TYPE_E     bno_comm_type;
-}bno085_setting_tbl_t;
+  bool inReset;
+
+}bno085_state_t;
 
 typedef struct{
-  BNO_SEQ_E bno_seq;
   bool INT_pinstate;
   uint16_t bno_data_size;
   uint32_t rx_time_stamp;
@@ -71,9 +38,5 @@ typedef struct{
 
 void bno085Init(void);
 void bno085Main(void);
-
-//BNO_STATE_E bno085SpiTransmit(uint8_t* pdata, uint32_t len);
-//BNO_STATE_E bno085SpiReceive(uint8_t* pdata, uint32_t len);
-//BNO_STATE_E bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t* r_pdata, uint32_t len);
 
 #endif /* BNO085_BNO085_H_ */
