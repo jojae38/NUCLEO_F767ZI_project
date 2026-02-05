@@ -142,14 +142,14 @@ void spiActivate(void)
 
     if(txBufLen > 0)
     {
-      bno_seq = SPI_WRITE;
+      bno_seq = SPI_WRITE_WAIT;
       HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, txBuf, rxBuf, txBufLen);
         // Deassert Wake
       PS0_wake(true);
     }
     else
     {
-      bno_seq = SPI_RD_HDR;
+      bno_seq = SPI_RD_HDR_WAIT;
       HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf, READ_LEN);
     }
   }
@@ -168,7 +168,7 @@ void spiRdHdr(void)
       // There is more to read
 
       // Transition to RD_BODY state
-      bno_seq = SPI_RD_BODY;
+      bno_seq = SPI_RD_BODY_WAIT;
 
       // Start a read operation for the remaining length.  (We already read the first READ_LEN bytes.)
       HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf+READ_LEN, rxLen-READ_LEN);
