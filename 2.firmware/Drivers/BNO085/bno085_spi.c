@@ -40,7 +40,10 @@ BNO_SPI_SEQ bno_seq = SPI_INIT;
 
 static void NSS(bool state){HAL_GPIO_WritePin(SPI3_NSS_GPIO_Port, SPI3_NSS_Pin, state? GPIO_PIN_SET : GPIO_PIN_RESET);}
 static void bno085DummyOp(void);
-
+bool bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t s_len, uint8_t* r_pdata, uint32_t r_len);
+void spiRdHdr(void);
+void spiRdBody(void);
+void spiWrite(void);
 
 static void bno085DummyOp(void)
 {
@@ -49,7 +52,6 @@ static void bno085DummyOp(void)
   memset(dummyTx,0xAA,sizeof(dummyTx));
   HAL_SPI_TransmitReceive(&BNO_SPI_HANDLER, dummyTx, dummyRx, sizeof(dummyTx), 10);
 }
-
 
 bool bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t s_len, uint8_t* r_pdata, uint32_t r_len)
 {
@@ -110,16 +112,20 @@ void bnoSpiSeq(void)
     case SPI_IDLE:
       spiActivate();
       break;
-
-    case SPI_RD_HDR:
-
+    case SPI_RD_HDR_WAIT:
       break;
-
+    case SPI_RD_HDR:
+      spiRdHdr();
+      break;
+    case SPI_RD_BODY_WAIT:
+      break;
     case SPI_RD_BODY:
-
+      spiRdBody();
+      break;
+    case SPI_WRITE_WAIT:
       break;
     case SPI_WRITE:
-
+      spiWrite();
       break;
     default:
       break;
@@ -149,7 +155,7 @@ void spiActivate(void)
   }
 }
 
-void spiComplete(void)
+void spiRdHdr(void)
 {
   uint16_t rxLen = (rxBuf[0] + (rxBuf[1] << 8)) & ~0x8000;
 
@@ -158,76 +164,173 @@ void spiComplete(void)
       rxLen = sizeof(rxBuf);
   }
 
-  if (bno_seq == SPI_DUMMY)
-  {
-      // SPI Dummy operation completed, transition now to idle
-      bno_seq = SPI_IDLE;
+  if (rxLen > READ_LEN) {
+      // There is more to read
+
+      // Transition to RD_BODY state
+      bno_seq = SPI_RD_BODY;
+
+      // Start a read operation for the remaining length.  (We already read the first READ_LEN bytes.)
+      HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf+READ_LEN, rxLen-READ_LEN);
   }
-  else if(bno_seq == SPI_RD_HDR)
+  else
   {
-    if (rxLen > READ_LEN) {
-        // There is more to read
-
-        // Transition to RD_BODY state
-        bno_seq = SPI_RD_BODY;
-
-        // Start a read operation for the remaining length.  (We already read the first READ_LEN bytes.)
-        HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf+READ_LEN, rxLen-READ_LEN);
-    }
-    else
-    {
-        // No SHTP payload was received, this operation is done
-        NSS(true);            // deassert CSN
-        rxBufLen = 0;         // no rx data available
-        bno_seq = SPI_IDLE;  // back to idle state
-        spiActivate();        // activate next operation, if any.
-    }
-  }
-  else if (bno_seq == SPI_RD_BODY)
-  {
-      // We completed the read or write of a payload
-      // deassert CSN.
-      NSS(true);
-
-      // Check len of data read and set rxBufLen
-      rxBufLen = rxLen;
-
-      // transition back to idle state
-      bno_seq = SPI_IDLE;
-
-      // Activate the next operation, if any.
-      spiActivate();
-  }
-  else if (bno_seq == SPI_WRITE)
-  {
-      // We completed the read or write of a payload
-      // deassert CSN.
-      NSS(true);
-
-      // Since operation was a write, transaction was for txBufLen bytes.  So received
-      // data len is, at a maximum, txBufLen.
-      rxBufLen = (txBufLen < rxLen) ? txBufLen : rxLen;
-
-      // Tx buffer is empty now.
-      txBufLen = 0;
-
-      // transition back to idle state
-      bno_seq = SPI_IDLE;
-
-      // Activate the next operation, if any.
-      spiActivate();
+      // No SHTP payload was received, this operation is done
+      NSS(true);            // deassert CSN
+      rxBufLen = 0;         // no rx data available
+      bno_seq = SPI_IDLE;  // back to idle state
+      spiActivate();        // activate next operation, if any.
   }
 }
+
+void spiRdBody(void)
+{
+  uint16_t rxLen = (rxBuf[0] + (rxBuf[1] << 8)) & ~0x8000;
+
+  if (rxLen > sizeof(rxBuf))
+  {
+      rxLen = sizeof(rxBuf);
+  }
+
+  // We completed the read or write of a payload
+  // deassert CSN.
+  NSS(true);
+
+  // Check len of data read and set rxBufLen
+  rxBufLen = rxLen;
+
+  // transition back to idle state
+  bno_seq = SPI_IDLE;
+}
+
+void spiWrite(void)
+{
+  uint16_t rxLen = (rxBuf[0] + (rxBuf[1] << 8)) & ~0x8000;
+
+  if (rxLen > sizeof(rxBuf))
+  {
+      rxLen = sizeof(rxBuf);
+  }
+
+  // We completed the read or write of a payload
+  // deassert CSN.
+  NSS(true);
+
+  // Since operation was a write, transaction was for txBufLen bytes.  So received
+  // data len is, at a maximum, txBufLen.
+  rxBufLen = (txBufLen < rxLen) ? txBufLen : rxLen;
+
+  // Tx buffer is empty now.
+  txBufLen = 0;
+
+  // transition back to idle state
+  bno_seq = SPI_IDLE;
+}
+
+//void spiComplete(void)
+//{
+//  uint16_t rxLen = (rxBuf[0] + (rxBuf[1] << 8)) & ~0x8000;
+//
+//  if (rxLen > sizeof(rxBuf))
+//  {
+//      rxLen = sizeof(rxBuf);
+//  }
+//
+//  if (bno_seq == SPI_DUMMY)
+//  {
+//      // SPI Dummy operation completed, transition now to idle
+//      bno_seq = SPI_IDLE;
+//  }
+//  else if(bno_seq == SPI_RD_HDR)
+//  {
+//    if (rxLen > READ_LEN) {
+//        // There is more to read
+//
+//        // Transition to RD_BODY state
+//        bno_seq = SPI_RD_BODY;
+//
+//        // Start a read operation for the remaining length.  (We already read the first READ_LEN bytes.)
+//        HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf+READ_LEN, rxLen-READ_LEN);
+//    }
+//    else
+//    {
+//        // No SHTP payload was received, this operation is done
+//        NSS(true);            // deassert CSN
+//        rxBufLen = 0;         // no rx data available
+//        bno_seq = SPI_IDLE;  // back to idle state
+//        spiActivate();        // activate next operation, if any.
+//    }
+//  }
+//  else if (bno_seq == SPI_RD_BODY)
+//  {
+//      // We completed the read or write of a payload
+//      // deassert CSN.
+//      NSS(true);
+//
+//      // Check len of data read and set rxBufLen
+//      rxBufLen = rxLen;
+//
+//      // transition back to idle state
+//      bno_seq = SPI_IDLE;
+//
+//      // Activate the next operation, if any.
+//      spiActivate();
+//  }
+//  else if (bno_seq == SPI_WRITE)
+//  {
+//      // We completed the read or write of a payload
+//      // deassert CSN.
+//      NSS(true);
+//
+//      // Since operation was a write, transaction was for txBufLen bytes.  So received
+//      // data len is, at a maximum, txBufLen.
+//      rxBufLen = (txBufLen < rxLen) ? txBufLen : rxLen;
+//
+//      // Tx buffer is empty now.
+//      txBufLen = 0;
+//
+//      // transition back to idle state
+//      bno_seq = SPI_IDLE;
+//
+//      // Activate the next operation, if any.
+//      spiActivate();
+//  }
+//}
+
+void extiInterrupt(void)
+{
+  intTriggerCount ++;
+  inReset = false;
+  rxReady = true;
+}
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if(intOk && GPIO_Pin == BNO085_INT_Pin)
   {
-    intTriggerCount ++;
-    intTrigger = true;
+    extiInterrupt();
+  }
+}
 
-    inReset = false;
-    rxReady = true;
+void spiInterrupt(void)
+{
+  spiTriggerCount ++;
+  switch (bno_seq) {
+    case SPI_DUMMY:
+      bno_seq = SPI_INIT;
+      break;
+    case SPI_RD_HDR_WAIT:
+      bno_seq = SPI_RD_HDR;
+      break;
+    case SPI_RD_BODY_WAIT:
+      bno_seq = SPI_RD_BODY;
+      break;
+    case SPI_WRITE_WAIT:
+      bno_seq = SPI_WRITE;
+      break;
+    default:
+      break;
   }
 }
 
@@ -235,36 +338,9 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 {
   if(intOk && hspi == &BNO_SPI_HANDLER)
   {
-    spiTriggerCount ++;
-    spiTrigger  = true;
-    spiComplete();
+//    spiComplete();
+    spiInterrupt();
   }
-}
-
-bool extiIntCheck(bool reset)
-{
-  bool ret = intTrigger;
-  if(reset)
-    intTrigger = false;
-  return ret;
-}
-
-bool waitExtiIntCheck(bool reset)
-{
-  bool ret = intTrigger;
-
-  uint32_t timer = millis();
-  while((millis() - timer) < BNO_DEFAULT_WAIT_TIME)
-  {
-    if(intTrigger == true)
-    {
-      if(reset)
-        intTrigger = false;
-      return true;
-    }
-    delay(1);
-  }
-  return ret;
 }
 
 #endif
