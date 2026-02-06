@@ -10,6 +10,7 @@
 
 #include "bno085_common.h"
 #include "sh2.h"
+#include "sh2_err.h"
 
 typedef enum{
   SPI_INIT = 0,

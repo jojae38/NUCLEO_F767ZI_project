@@ -24,6 +24,8 @@ uint32_t intTriggerCount = 0;
 bool spiTrigger = false;
 uint32_t spiTriggerCount = 0;
 
+static volatile uint32_t rxTimestamp_us;
+
 uint8_t rxBuf[BNO_RX_BUFFER_LIMIT];
 static volatile uint32_t rxBufLen;
 static volatile bool rxDataReady;
@@ -325,22 +327,83 @@ sh2_Hal_t* sh2Spi_init(void)
 int sh2SpiOpen(sh2_Hal_t *self)
 {
   bnoSpiReset();
+  return SH2_OK;
 }
 
 void sh2SpiClose(sh2_Hal_t *self)
 {
+  RSTN(false);
+  NSS(true);
+
   isInit = false;
   disableInt();
 }
 
 int sh2SpiRead(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us)
 {
+  int ret = SH2_OK;
 
+  // If there is received data available...
+  if (rxBufLen > 0)
+  {
+      // And if the data will fit in this buffer...
+      if (len >= rxBufLen)
+      {
+          // Copy data to the client buffer
+          memcpy(pBuffer, rxBuf, rxBufLen);
+          ret = rxBufLen;
+
+          // Set timestamp of that data
+          *t_us = rxTimestamp_us;
+
+          // Clear rxBuf so we can receive again
+          rxBufLen = 0;
+      }
+      else
+      {
+          // Discard what was read and return error because buffer was too small.
+          ret = SH2_ERR_BAD_PARAM;
+          rxBufLen = 0;
+      }
+
+      // Now that rxBuf is empty, activate SPI processing to send any
+      // potential write that was blocked.
+      disableInt();
+      spiActivate();
+      enableInt();
+  }
+
+  return ret;
 }
 
 int sh2SpiWrite(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len)
 {
+  int ret = SH2_OK;
+  if((self == 0) || (len>sizeof(txBuf)) || ((len>0) && (pBuffer == 0)))
+  {
+    return SH2_ERR_BAD_PARAM;
+  }
 
+  if(txBufLen != 0)
+  {
+    return 0;
+  }
+
+  // Copy data to tx buffer
+  memcpy(txBuf, pBuffer, len);
+  txBufLen = len;
+  ret = len;
+
+  // disable SH2 interrupts for a moment
+  disableInt();
+
+  // Assert Wake
+  PS0_wake(false);
+
+  // re-enable SH2 interrupts.
+  enableInt();
+
+  return ret;
 }
 
 uint32_t sh2SpiMicros(sh2_Hal_t *self)
