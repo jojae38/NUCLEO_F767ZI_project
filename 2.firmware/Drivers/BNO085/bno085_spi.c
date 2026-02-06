@@ -31,6 +31,8 @@ static volatile bool rxDataReady;
 uint8_t txBuf[BNO_TX_BUFFER_LIMIT];
 static uint32_t txBufLen;
 
+static sh2_Hal_t sh2Hal;
+
 static void enableInt(void) {intOk = true;}
 static void disableInt(void){intOk = false;}
 void spiActivate(void);
@@ -44,6 +46,9 @@ bool bno085SpiTransmitReceive(uint8_t* s_pdata, uint8_t s_len, uint8_t* r_pdata,
 void spiRdHdr(void);
 void spiRdBody(void);
 void spiWrite(void);
+
+bool waitForExtiInt(uint32_t term);
+bool waitForInt(uint32_t term);
 
 static void bno085DummyOp(void)
 {
@@ -98,7 +103,7 @@ void bnoSpiReset(void)
   RSTN(true);
 
   enableInt();
-  delay(2000);
+  delay(200);
   cliPrintf("RESET END\r\n");
   isInit = true;
 }
@@ -227,75 +232,6 @@ void spiWrite(void)
   bno_seq = SPI_IDLE;
 }
 
-//void spiComplete(void)
-//{
-//  uint16_t rxLen = (rxBuf[0] + (rxBuf[1] << 8)) & ~0x8000;
-//
-//  if (rxLen > sizeof(rxBuf))
-//  {
-//      rxLen = sizeof(rxBuf);
-//  }
-//
-//  if (bno_seq == SPI_DUMMY)
-//  {
-//      // SPI Dummy operation completed, transition now to idle
-//      bno_seq = SPI_IDLE;
-//  }
-//  else if(bno_seq == SPI_RD_HDR)
-//  {
-//    if (rxLen > READ_LEN) {
-//        // There is more to read
-//
-//        // Transition to RD_BODY state
-//        bno_seq = SPI_RD_BODY;
-//
-//        // Start a read operation for the remaining length.  (We already read the first READ_LEN bytes.)
-//        HAL_SPI_TransmitReceive_IT(&BNO_SPI_HANDLER, (uint8_t *)txZeros, rxBuf+READ_LEN, rxLen-READ_LEN);
-//    }
-//    else
-//    {
-//        // No SHTP payload was received, this operation is done
-//        NSS(true);            // deassert CSN
-//        rxBufLen = 0;         // no rx data available
-//        bno_seq = SPI_IDLE;  // back to idle state
-//        spiActivate();        // activate next operation, if any.
-//    }
-//  }
-//  else if (bno_seq == SPI_RD_BODY)
-//  {
-//      // We completed the read or write of a payload
-//      // deassert CSN.
-//      NSS(true);
-//
-//      // Check len of data read and set rxBufLen
-//      rxBufLen = rxLen;
-//
-//      // transition back to idle state
-//      bno_seq = SPI_IDLE;
-//
-//      // Activate the next operation, if any.
-//      spiActivate();
-//  }
-//  else if (bno_seq == SPI_WRITE)
-//  {
-//      // We completed the read or write of a payload
-//      // deassert CSN.
-//      NSS(true);
-//
-//      // Since operation was a write, transaction was for txBufLen bytes.  So received
-//      // data len is, at a maximum, txBufLen.
-//      rxBufLen = (txBufLen < rxLen) ? txBufLen : rxLen;
-//
-//      // Tx buffer is empty now.
-//      txBufLen = 0;
-//
-//      // transition back to idle state
-//      bno_seq = SPI_IDLE;
-//
-//      // Activate the next operation, if any.
-//      spiActivate();
-//  }
-//}
 
 void extiInterrupt(void)
 {
@@ -341,6 +277,75 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 //    spiComplete();
     spiInterrupt();
   }
+}
+
+// SH2 함수 open / close / write / read / getmillis
+
+bool waitForExtiInt(uint32_t term)
+{
+  uint32_t timer = millis();
+  while(millis() - timer < term)
+  {
+    if(rxReady)
+    {
+      rxReady = false;
+      return true;
+    }
+    delay(1);
+  }
+
+  bnoSpiReset();
+  return false;
+}
+
+bool waitForInt(uint32_t term)
+{
+  uint32_t timer = millis();
+  while(millis() - timer < term)
+  {
+    if(HAL_GPIO_ReadPin(BNO085_INT_GPIO_Port, BNO085_INT_Pin) == GPIO_PIN_RESET)
+      return true;
+    delay(1);
+  }
+
+  bnoSpiReset();
+  return false;
+}
+
+sh2_Hal_t* sh2Spi_init(void)
+{
+  sh2Hal.open = sh2SpiOpen;
+  sh2Hal.close = sh2SpiClose;
+  sh2Hal.read = sh2SpiRead;
+  sh2Hal.write = sh2SpiWrite;
+  sh2Hal.getTimeUs = sh2SpiMicros;
+  return &sh2Hal;
+}
+
+int sh2SpiOpen(sh2_Hal_t *self)
+{
+  bnoSpiReset();
+}
+
+void sh2SpiClose(sh2_Hal_t *self)
+{
+  isInit = false;
+  disableInt();
+}
+
+int sh2SpiRead(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us)
+{
+
+}
+
+int sh2SpiWrite(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len)
+{
+
+}
+
+uint32_t sh2SpiMicros(sh2_Hal_t *self)
+{
+  return micros();
 }
 
 #endif

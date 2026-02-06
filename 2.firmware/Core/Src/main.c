@@ -21,6 +21,7 @@
 #include "eth.h"
 #include "i2c.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
@@ -103,6 +104,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C2_Init();
   MX_UART4_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   apInit();
   apMain();

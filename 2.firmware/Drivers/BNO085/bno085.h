@@ -24,6 +24,12 @@
 #include "bno085_uart.h"
 #include "bno085_uartrvc.h"
 
+#include "cli.h"
+#include "sh2.h"
+#include "sh2_util.h"
+#include "sh2_err.h"
+#include "sh2_SensorValue.h"
+
 void bno085Init(void);
 void bno085Main(void);
 

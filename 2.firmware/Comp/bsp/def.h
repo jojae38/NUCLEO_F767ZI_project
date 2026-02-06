@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 typedef uint8_t   BYTE;             // 8-bit byte
 typedef uint32_t  WORD;             // 32-bit word, change to "long" for 16-bit machines
 

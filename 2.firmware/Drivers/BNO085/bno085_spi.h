@@ -9,6 +9,7 @@
 #define BNO085_BNO085_SPI_H_
 
 #include "bno085_common.h"
+#include "sh2.h"
 
 typedef enum{
   SPI_INIT = 0,
@@ -25,5 +26,12 @@ typedef enum{
 
 void bnoSpiReset(void);
 void bnoSpiSeq(void);
+
+sh2_Hal_t* sh2Spi_init(void);
+int sh2SpiOpen(sh2_Hal_t *self);
+void sh2SpiClose(sh2_Hal_t *self);
+int sh2SpiRead(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len, uint32_t *t_us);
+int sh2SpiWrite(sh2_Hal_t *self, uint8_t *pBuffer, unsigned len);
+uint32_t sh2SpiMicros(sh2_Hal_t *self);
 
 #endif /* BNO085_BNO085_SPI_H_ */

@@ -19,6 +19,27 @@ void delay(uint32_t ms);
 uint32_t millis(void);
 void Reset(void);
 bool isTimeOver(uint32_t term, uint32_t last_check);
+#ifdef DWT_USE
+void DWT_Init(void)
+{
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+
+static inline uint32_t micros(void)
+{
+    return DWT->CYCCNT / (SystemCoreClock / 1000000);
+}
+#endif
+
+#ifndef DWT_USE
+extern TIM_HandleTypeDef htim2;
+static inline uint32_t micros(void)
+{
+    return __HAL_TIM_GET_COUNTER(&htim2);
+}
+#endif
 
 typedef struct{
   uint32_t deadline;

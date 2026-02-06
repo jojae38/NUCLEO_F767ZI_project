@@ -32,6 +32,8 @@
 #define SH2_HAL_MAX_TRANSFER_IN  (1024)
 #define SH2_HAL_MAX_PAYLOAD_IN   (1024)
 
+#define SH2_HAL_DMA_SIZE (512)
+
 typedef struct sh2_Hal_s sh2_Hal_t;
 
 // The SH2 interface uses these functions to access the underlying
