@@ -57,9 +57,9 @@
 //////////////////////////////////////////////////////////////////////////
 
 /**
- * @brief Definition for connected to SPI2 (APB1 PCLK = 42MHz)
+ * @brief Definition for connected to SPI3 (APB1 PCLK = 42MHz)
  */
-#define BNO080_SPI_CHANNEL		SPI2
+#define BNO080_SPI_CHANNEL		SPI3
 
 #define BNO080_SPI_SCLK_PIN		LL_GPIO_PIN_13
 #define BNO080_SPI_SCLK_PORT	GPIOB
@@ -179,7 +179,7 @@ enum Registers
 
 void BNO080_GPIO_SPI_Initialization(void);
 int BNO080_Initialization(void);
-unsigned char SPI2_SendByte(unsigned char data);
+unsigned char SPI3_SendByte(unsigned char data);
 
 int BNO080_dataAvailable(void);
 void BNO080_parseCommandReport(void);

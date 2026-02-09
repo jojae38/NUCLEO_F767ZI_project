@@ -177,6 +177,7 @@ void BNO085_Main(void)
     Quaternion_Update(&q[0]);
 
     printf("%.2f\t%.2f\t%.2f\n", BNO080_Roll, BNO080_Pitch, BNO080_Yaw); //print roll, pitch, yaw in degree
+    printf("%.2f\n", quatRadianAccuracy);
   }
 }
 
@@ -234,7 +235,7 @@ int BNO080_Initialization(void)
 	return (1); //Something went wrong
 }
 
-unsigned char SPI2_SendByte(unsigned char data)
+unsigned char SPI3_SendByte(unsigned char data)
 {
 	while(LL_SPI_IsActiveFlag_TXE(BNO080_SPI_CHANNEL)==RESET);
 	LL_SPI_TransmitData8(BNO080_SPI_CHANNEL, data);
@@ -242,7 +243,6 @@ unsigned char SPI2_SendByte(unsigned char data)
 	while(LL_SPI_IsActiveFlag_RXNE(BNO080_SPI_CHANNEL)==RESET);
 	return LL_SPI_ReceiveData8(BNO080_SPI_CHANNEL);
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //init
@@ -1049,10 +1049,10 @@ int BNO080_receivePacket(void)
 	CHIP_SELECT(BNO080);
 
 	//Get the first four bytes, aka the packet header
-	uint8_t packetLSB = SPI2_SendByte(0);
-	uint8_t packetMSB = SPI2_SendByte(0);
-	uint8_t channelNumber = SPI2_SendByte(0);
-	uint8_t sequenceNumber = SPI2_SendByte(0); //Not sure if we need to store this or not
+	uint8_t packetLSB = SPI3_SendByte(0);
+	uint8_t packetMSB = SPI3_SendByte(0);
+	uint8_t channelNumber = SPI3_SendByte(0);
+	uint8_t sequenceNumber = SPI3_SendByte(0); //Not sure if we need to store this or not
 
 	//Store the header info
 	shtpHeader[0] = packetLSB;
@@ -1077,7 +1077,7 @@ int BNO080_receivePacket(void)
 	//Read incoming data into the shtpData array
 	for (uint16_t dataSpot = 0; dataSpot < dataLength; dataSpot++)
 	{
-		incoming = SPI2_SendByte(0xFF);
+		incoming = SPI3_SendByte(0xFF);
 		//printf("%d ", incoming);
 		if (dataSpot < MAX_PACKET_SIZE)	//BNO080 can respond with upto 270 bytes, avoid overflow
 			shtpData[dataSpot] = incoming; //Store data into the shtpData array
@@ -1105,15 +1105,15 @@ int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength)
 	CHIP_SELECT(BNO080);
 
 	//Send the 4 byte packet header
-	SPI2_SendByte(packetLength & 0xFF);			//Packet length LSB
-	SPI2_SendByte(packetLength >> 8);				//Packet length MSB
-	SPI2_SendByte(channelNumber);					//Channel number
-	SPI2_SendByte(sequenceNumber[channelNumber]++); 	//Send the sequence number, increments with each packet sent, different counter for each channel
+	SPI3_SendByte(packetLength & 0xFF);			//Packet length LSB
+	SPI3_SendByte(packetLength >> 8);				//Packet length MSB
+	SPI3_SendByte(channelNumber);					//Channel number
+	SPI3_SendByte(sequenceNumber[channelNumber]++); 	//Send the sequence number, increments with each packet sent, different counter for each channel
 
 	//Send the user's data packet
 	for (uint8_t i = 0; i < dataLength; i++)
 	{
-		SPI2_SendByte(shtpData[i]);
+		SPI3_SendByte(shtpData[i]);
 	}
 
 	CHIP_DESELECT(BNO080);
