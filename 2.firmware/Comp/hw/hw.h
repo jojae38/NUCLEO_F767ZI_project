@@ -12,7 +12,6 @@
 #include "cli.h"
 #include "led.h"
 #include "btn.h"
-#include "bno085.h"
 
 void hwInit(void);
 void hwMain(void);

@@ -7,7 +7,6 @@
 
 #include "cli.h"
 #include "_uart.h"
-#include "bno085.h"
 
 #ifdef _USE_HW_CLI
 

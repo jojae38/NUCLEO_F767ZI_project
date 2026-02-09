@@ -13,7 +13,6 @@ void hwInit(void)
   ledInit();
   btnInit();
 	cliInit();
-	bno085Init();
 }
 
 static __vo uint32_t timer_100ms = 0;
@@ -64,5 +63,4 @@ void hwMain(void)
 
   }
 	cliMain();
-	bno085Main();
 }
