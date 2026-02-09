@@ -44,6 +44,8 @@
  */
 
 #include "BNO080.h"
+#include "Quaternion.h"
+
 
 //Global Variables
 uint8_t shtpHeader[4]; //Each packet has a header of 4 bytes
@@ -158,6 +160,25 @@ int16_t magnetometer_Q1 = 4;
 //	WAKE_HIGH();
 //	RESET_HIGH();
 //}
+
+void BNO085_Main(void)
+{
+  float q[4];
+  float quatRadianAccuracy;
+
+  if(BNO080_dataAvailable() == 1)
+  {
+    q[0] = BNO080_getQuatI();
+    q[1] = BNO080_getQuatJ();
+    q[2] = BNO080_getQuatK();
+    q[3] = BNO080_getQuatReal();
+    quatRadianAccuracy = BNO080_getQuatRadianAccuracy();
+
+    Quaternion_Update(&q[0]);
+
+    printf("%.2f\t%.2f\t%.2f\n", BNO080_Roll, BNO080_Pitch, BNO080_Yaw); //print roll, pitch, yaw in degree
+  }
+}
 
 int BNO080_Initialization(void)
 {

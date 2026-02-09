@@ -48,6 +48,9 @@
 
 #include "hw_def.h"
 #include "cli.h"
+
+#include "stm32f7xx_ll_spi.h"
+#include "stm32f7xx_ll_gpio.h"
 //////////////////////////////////////////////////////////////////////////
 #define printf(...) cliPrintf(__VA_ARGS__)
 
@@ -88,23 +91,23 @@
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-//#define CHIP_SELECT(BNO080)		LL_GPIO_ResetOutputPin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN)
-//#define CHIP_DESELECT(BNO080)	LL_GPIO_SetOutputPin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN)
+#define CHIP_SELECT(BNO080)		LL_GPIO_ResetOutputPin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN)
+#define CHIP_DESELECT(BNO080)	LL_GPIO_SetOutputPin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN)
+
+#define WAKE_HIGH()				LL_GPIO_SetOutputPin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN)
+#define WAKE_LOW()				LL_GPIO_ResetOutputPin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN)
+
+#define RESET_HIGH()			LL_GPIO_SetOutputPin(BNO080_RST_PORT, BNO080_RST_PIN)
+#define RESET_LOW()				LL_GPIO_ResetOutputPin(BNO080_RST_PORT, BNO080_RST_PIN)
+
+//#define CHIP_SELECT(BNO080)   HAL_GPIO_WritePin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN, GPIO_PIN_RESET)
+//#define CHIP_DESELECT(BNO080) HAL_GPIO_WritePin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN, GPIO_PIN_SET)
 //
-//#define WAKE_HIGH()				LL_GPIO_SetOutputPin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN)
-//#define WAKE_LOW()				LL_GPIO_ResetOutputPin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN)
+//#define WAKE_HIGH()       HAL_GPIO_WritePin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN, GPIO_PIN_SET)
+//#define WAKE_LOW()        HAL_GPIO_WritePin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN, GPIO_PIN_RESET)
 //
-//#define RESET_HIGH()			LL_GPIO_SetOutputPin(BNO080_RST_PORT, BNO080_RST_PIN)
-//#define RESET_LOW()				LL_GPIO_ResetOutputPin(BNO080_RST_PORT, BNO080_RST_PIN)
-
-#define CHIP_SELECT(BNO080)   HAL_GPIO_WritePin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN, GPIO_PIN_RESET)
-#define CHIP_DESELECT(BNO080) HAL_GPIO_WritePin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN, GPIO_PIN_SET)
-
-#define WAKE_HIGH()       HAL_GPIO_WritePin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN, GPIO_PIN_SET)
-#define WAKE_LOW()        HAL_GPIO_WritePin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN, GPIO_PIN_RESET)
-
-#define RESET_HIGH()      HAL_GPIO_WritePin(BNO080_RST_PORT, BNO080_RST_PIN, GPIO_PIN_SET)
-#define RESET_LOW()       HAL_GPIO_WritePin(BNO080_RST_PORT, BNO080_RST_PIN, GPIO_PIN_RESET)
+//#define RESET_HIGH()      HAL_GPIO_WritePin(BNO080_RST_PORT, BNO080_RST_PIN, GPIO_PIN_SET)
+//#define RESET_LOW()       HAL_GPIO_WritePin(BNO080_RST_PORT, BNO080_RST_PIN, GPIO_PIN_RESET)
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
@@ -248,5 +251,7 @@ void BNO080_saveCalibration();
 int BNO080_waitForSPI(void);
 int BNO080_receivePacket(void);
 int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength);
+
+void BNO085_Main(void);
 
 #endif

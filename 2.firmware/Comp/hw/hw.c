@@ -13,6 +13,9 @@ void hwInit(void)
   ledInit();
   btnInit();
 	cliInit();
+
+	BNO080_Initialization();
+	BNO080_enableRotationVector(2500); //enable rotation vector at 400Hz
 }
 
 static __vo uint32_t timer_100ms = 0;
@@ -63,4 +66,5 @@ void hwMain(void)
 
   }
 	cliMain();
+	BNO085_Main();
 }
