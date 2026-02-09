@@ -75,22 +75,22 @@ int16_t linear_accelerometer_Q1 = 8;
 int16_t gyro_Q1 = 9;
 int16_t magnetometer_Q1 = 4;
 
-//
-//void BNO080_GPIO_SPI_Initialization(void)
-//{
+
+void BNO080_GPIO_SPI_Initialization(void)
+{
 //	LL_SPI_InitTypeDef SPI_InitStruct = {0};
-//
+
 //	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-//	/* Peripheral clock enable */
+	/* Peripheral clock enable */
 //	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
 //
 //	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 //	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
 //	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
 //	/**SPI2 GPIO Configuration
-//	PB13   ------> SPI2_SCK
-//	PB14   ------> SPI2_MISO
-//	PB15   ------> SPI2_MOSI
+//	PB13   ------> SPI3_SCK
+//	PB14   ------> SPI3_MISO
+//	PB15   ------> SPI3_MOSI
 //	*/
 //	GPIO_InitStruct.Pin = LL_GPIO_PIN_13|LL_GPIO_PIN_14|LL_GPIO_PIN_15;
 //	GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
@@ -99,7 +99,7 @@ int16_t magnetometer_Q1 = 4;
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 //	GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
 //	LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-//
+
 //	SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
 //	SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
 //	SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_8BIT;
@@ -112,54 +112,54 @@ int16_t magnetometer_Q1 = 4;
 //	SPI_InitStruct.CRCPoly = 10;
 //	LL_SPI_Init(BNO080_SPI_CHANNEL, &SPI_InitStruct);
 //	LL_SPI_SetStandard(BNO080_SPI_CHANNEL, LL_SPI_PROTOCOL_MOTOROLA);
-//
-//	/**BNO080 GPIO Control Configuration
-//	 * PB12 ------> BNO080_CS (output)
-//	 * PA8  ------> BNO080_PS0/WAKE (output)
-//	 * PC9  ------> BNO080_RST (output)
-//	 * PC8  ------> BNO080_INT (input)
-//	 */
-//	/**/
+
+	/**BNO080 GPIO Control Configuration
+	 * PB12 ------> BNO080_CS (output)
+	 * PA8  ------> BNO080_PS0/WAKE (output)
+	 * PC9  ------> BNO080_RST (output)
+	 * PC8  ------> BNO080_INT (input)
+	 */
+	/**/
 //	LL_GPIO_ResetOutputPin(BNO080_RST_PORT, BNO080_RST_PIN);
 //	LL_GPIO_ResetOutputPin(BNO080_SPI_CS_PORT, BNO080_SPI_CS_PIN);
 //	LL_GPIO_ResetOutputPin(BNO080_PS0_WAKE_PORT, BNO080_PS0_WAKE_PIN);
-//
-//	/**/
+
+	/**/
 //	GPIO_InitStruct.Pin = BNO080_SPI_CS_PIN;
 //	GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
 //	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
 //	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 //	LL_GPIO_Init(BNO080_SPI_CS_PORT, &GPIO_InitStruct);
-//
-//	/**/
+
+	/**/
 //	GPIO_InitStruct.Pin = BNO080_RST_PIN;
 //	GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
 //	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
 //	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 //	LL_GPIO_Init(BNO080_RST_PORT, &GPIO_InitStruct);
-//
-//	/**/
+
+	/**/
 //	GPIO_InitStruct.Pin = BNO080_PS0_WAKE_PIN;
 //	GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
 //	GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
 //	GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 //	LL_GPIO_Init(BNO080_PS0_WAKE_PORT, &GPIO_InitStruct);
-//
-//	/**/
+
+	/**/
 //	GPIO_InitStruct.Pin = BNO080_INT_PIN;
 //	GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
 //	LL_GPIO_Init(BNO080_INT_PORT, &GPIO_InitStruct);
-//
-//	LL_SPI_Enable(BNO080_SPI_CHANNEL);
-//
-//	CHIP_DESELECT(BNO080);
-//	WAKE_HIGH();
-//	RESET_HIGH();
-//}
+
+	LL_SPI_Enable(BNO080_SPI_CHANNEL);
+
+	CHIP_DESELECT(BNO080);
+	WAKE_HIGH();
+	RESET_HIGH();
+}
 
 void BNO085_Main(void)
 {
@@ -183,12 +183,12 @@ void BNO085_Main(void)
 
 int BNO080_Initialization(void)
 {
-//	BNO080_GPIO_SPI_Initialization();
+	BNO080_GPIO_SPI_Initialization();
 	CHIP_DESELECT(BNO080);
-	WAKE_HIGH();
-	RESET_HIGH();
+//	WAKE_HIGH();
+//	RESET_HIGH();
 	
-	printf("Checking BNO080...");
+	printf("Checking BNO080...\r\n");
 	
 	CHIP_DESELECT(BNO080);
 
