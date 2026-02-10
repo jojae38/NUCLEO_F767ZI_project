@@ -14,8 +14,8 @@ void hwInit(void)
   btnInit();
 	cliInit();
 
-	BNO080_Initialization();
-	BNO080_enableRotationVector(2500); //enable rotation vector at 400Hz
+	BNO085_Initialization();
+	BNO085_enableRotationVector(2500); //enable rotation vector at 400Hz
 }
 
 static __vo uint32_t timer_100ms = 0;

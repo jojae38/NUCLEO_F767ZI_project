@@ -43,9 +43,11 @@
  * https://www.inflearn.com/course/stm32cubelde-stm32f4%EB%93%9C%EB%A1%A0-%EA%B0%9C%EB%B0%9C
  */
 
+
 #include "BNO080.h"
 #include "Quaternion.h"
 
+#ifdef _USE_BNO080
 
 //Global Variables
 uint8_t shtpHeader[4]; //Each packet has a header of 4 bytes
@@ -82,7 +84,7 @@ void BNO080_GPIO_SPI_Initialization(void)
 
 //	LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 	/* Peripheral clock enable */
-//	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI2);
+//	LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_SPI3);
 //
 //	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
 //	LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
@@ -154,14 +156,16 @@ void BNO080_GPIO_SPI_Initialization(void)
 //	GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
 //	LL_GPIO_Init(BNO080_INT_PORT, &GPIO_InitStruct);
 
+  //LL 드라이버의 경우 SPI 시작을 요청해야함
 	LL_SPI_Enable(BNO080_SPI_CHANNEL);
 
 	CHIP_DESELECT(BNO080);
 	WAKE_HIGH();
 	RESET_HIGH();
+
 }
 
-void BNO085_Main(void)
+void BNO080_Main(void)
 {
   float q[4];
   float quatRadianAccuracy;
@@ -184,9 +188,6 @@ void BNO085_Main(void)
 int BNO080_Initialization(void)
 {
 	BNO080_GPIO_SPI_Initialization();
-	CHIP_DESELECT(BNO080);
-//	WAKE_HIGH();
-//	RESET_HIGH();
 	
 	printf("Checking BNO080...\r\n");
 	
@@ -235,7 +236,7 @@ int BNO080_Initialization(void)
 	return (1); //Something went wrong
 }
 
-unsigned char SPI3_SendByte(unsigned char data)
+unsigned char SPI_SendByte(unsigned char data)
 {
 	while(LL_SPI_IsActiveFlag_TXE(BNO080_SPI_CHANNEL)==RESET);
 	LL_SPI_TransmitData8(BNO080_SPI_CHANNEL, data);
@@ -1049,10 +1050,10 @@ int BNO080_receivePacket(void)
 	CHIP_SELECT(BNO080);
 
 	//Get the first four bytes, aka the packet header
-	uint8_t packetLSB = SPI3_SendByte(0);
-	uint8_t packetMSB = SPI3_SendByte(0);
-	uint8_t channelNumber = SPI3_SendByte(0);
-	uint8_t sequenceNumber = SPI3_SendByte(0); //Not sure if we need to store this or not
+	uint8_t packetLSB = SPI_SendByte(0);
+	uint8_t packetMSB = SPI_SendByte(0);
+	uint8_t channelNumber = SPI_SendByte(0);
+	uint8_t sequenceNumber = SPI_SendByte(0); //Not sure if we need to store this or not
 
 	//Store the header info
 	shtpHeader[0] = packetLSB;
@@ -1077,7 +1078,7 @@ int BNO080_receivePacket(void)
 	//Read incoming data into the shtpData array
 	for (uint16_t dataSpot = 0; dataSpot < dataLength; dataSpot++)
 	{
-		incoming = SPI3_SendByte(0xFF);
+		incoming = SPI_SendByte(0xFF);
 		//printf("%d ", incoming);
 		if (dataSpot < MAX_PACKET_SIZE)	//BNO080 can respond with upto 270 bytes, avoid overflow
 			shtpData[dataSpot] = incoming; //Store data into the shtpData array
@@ -1105,21 +1106,23 @@ int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength)
 	CHIP_SELECT(BNO080);
 
 	//Send the 4 byte packet header
-	SPI3_SendByte(packetLength & 0xFF);			//Packet length LSB
-	SPI3_SendByte(packetLength >> 8);				//Packet length MSB
-	SPI3_SendByte(channelNumber);					//Channel number
-	SPI3_SendByte(sequenceNumber[channelNumber]++); 	//Send the sequence number, increments with each packet sent, different counter for each channel
+	SPI_SendByte(packetLength & 0xFF);			//Packet length LSB
+	SPI_SendByte(packetLength >> 8);				//Packet length MSB
+	SPI_SendByte(channelNumber);					//Channel number
+	SPI_SendByte(sequenceNumber[channelNumber]++); 	//Send the sequence number, increments with each packet sent, different counter for each channel
 
 	//Send the user's data packet
 	for (uint8_t i = 0; i < dataLength; i++)
 	{
-		SPI3_SendByte(shtpData[i]);
+		SPI_SendByte(shtpData[i]);
 	}
 
 	CHIP_DESELECT(BNO080);
 
 	return (1);
 }
+
+#endif
 ///////////////////////////////////////////////////////////////////////////
 
 

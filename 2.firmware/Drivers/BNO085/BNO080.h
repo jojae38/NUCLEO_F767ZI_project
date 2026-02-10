@@ -47,10 +47,11 @@
 #define	_BNO080_H
 
 #include "hw_def.h"
+
+#ifdef _USE_BNO080
+
 #include "cli.h"
 
-#include "stm32f7xx_ll_spi.h"
-#include "stm32f7xx_ll_gpio.h"
 //////////////////////////////////////////////////////////////////////////
 #define printf(...) cliPrintf(__VA_ARGS__)
 
@@ -59,35 +60,39 @@
 /**
  * @brief Definition for connected to SPI3 (APB1 PCLK = 42MHz)
  */
-#define BNO080_SPI_CHANNEL		SPI3
+#define BNO085_SPI_CHANNEL    SPI3
 
-#define BNO080_SPI_SCLK_PIN		LL_GPIO_PIN_13
-#define BNO080_SPI_SCLK_PORT	GPIOB
-#define BNO080_SPI_SCLK_CLK		LL_AHB1_GRP1_PERIPH_GPIOB
+#define BNO085_SPI_SCLK_PIN   LL_GPIO_PIN_10
+#define BNO085_SPI_SCLK_PORT  GPIOC
+#define BNO085_SPI_SCLK_CLK   LL_AHB1_GRP1_PERIPH_GPIOC
 
-#define BNO080_SPI_MISO_PIN		LL_GPIO_PIN_14
-#define BNO080_SPI_MISO_PORT	GPIOB
-#define BNO080_SPI_MISO_CLK		LL_AHB1_GRP1_PERIPH_GPIOB
+#define BNO085_SPI_MISO_PIN   LL_GPIO_PIN_11
+#define BNO085_SPI_MISO_PORT  GPIOC
+#define BNO085_SPI_MISO_CLK   LL_AHB1_GRP1_PERIPH_GPIOC
 
-#define BNO080_SPI_MOSI_PIN		LL_GPIO_PIN_15
-#define BNO080_SPI_MOSI_PORT	GPIOB
-#define BNO080_SPI_MOSI_CLK		LL_AHB1_GRP1_PERIPH_GPIOB
+#define BNO085_SPI_MOSI_PIN   LL_GPIO_PIN_12
+#define BNO085_SPI_MOSI_PORT  GPIOC
+#define BNO085_SPI_MOSI_CLK   LL_AHB1_GRP1_PERIPH_GPIOC
 
-#define BNO080_SPI_CS_PIN		  SPI3_NSS_Pin
-#define BNO080_SPI_CS_PORT		SPI3_NSS_GPIO_Port
-#define BNO080_SPI_CS_CLK		  LL_AHB1_GRP1_PERIPH_GPIOB
+#define BNO085_SPI_CS_PIN     SPI3_NSS_Pin
+#define BNO085_SPI_CS_PORT    SPI3_NSS_GPIO_Port
+#define BNO085_SPI_CS_CLK     LL_AHB1_GRP1_PERIPH_GPIOC
 
-#define BNO080_PS0_WAKE_PIN   BNO085_PS0_Pin
-#define BNO080_PS0_WAKE_PORT	BNO085_PS0_GPIO_Port
-#define BNO080_PS0_WAKE_CLK		LL_AHB1_GRP1_PERIPH_GPIOA
+#define BNO085_PS0_WAKE_PIN   BNO085_PS0_Pin
+#define BNO085_PS0_WAKE_PORT  BNO085_PS0_GPIO_Port
+#define BNO085_PS0_WAKE_CLK   LL_AHB1_GRP1_PERIPH_GPIOG
 
-#define BNO080_RST_PIN			BNO085_RST_Pin
-#define BNO080_RST_PORT			BNO085_RST_GPIO_Port
-#define BNO080_RST_CLK			LL_AHB1_GRP1_PERIPH_GPIOC
+#define BNO085_PS1_PIN      BNO085_PS1_Pin
+#define BNO085_PS1_PORT     BNO085_PS1_GPIO_Port
+#define BNO085_PS1_CLK      LL_AHB1_GRP1_PERIPH_GPIOG
 
-#define BNO080_INT_PIN			BNO085_INT_Pin
-#define BNO080_INT_PORT			BNO085_INT_GPIO_Port
-#define BNO080_INT_CLK			LL_AHB1_GRP1_PERIPH_GPIOC
+#define BNO085_RST_PIN      BNO085_RST_Pin
+#define BNO085_RST_PORT     BNO085_RST_GPIO_Port
+#define BNO085_RST_CLK      LL_AHB1_GRP1_PERIPH_GPIOC
+
+#define BNO085_INT_PIN      BNO085_INT_Pin
+#define BNO085_INT_PORT     BNO085_INT_GPIO_Port
+#define BNO085_INT_CLK      LL_AHB1_GRP1_PERIPH_GPIOD
 
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -179,7 +184,7 @@ enum Registers
 
 void BNO080_GPIO_SPI_Initialization(void);
 int BNO080_Initialization(void);
-unsigned char SPI3_SendByte(unsigned char data);
+unsigned char SPI_SendByte(unsigned char data);
 
 int BNO080_dataAvailable(void);
 void BNO080_parseCommandReport(void);
@@ -252,6 +257,8 @@ int BNO080_waitForSPI(void);
 int BNO080_receivePacket(void);
 int BNO080_sendPacket(uint8_t channelNumber, uint8_t dataLength);
 
-void BNO085_Main(void);
+void BNO080_Main(void);
+
+#endif
 
 #endif
